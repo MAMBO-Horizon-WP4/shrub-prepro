@@ -6,6 +6,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Ignore output data
+# Ignore data
 data/input/*
 data/output/*

@@ -1,4 +1,3 @@
-
 import rasterio
 from rasterio.windows import Window
 import geopandas as gpd

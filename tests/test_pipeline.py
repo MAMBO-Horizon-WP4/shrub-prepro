@@ -1,9 +1,11 @@
-import pytest
 from pathlib import Path
-import rasterio
+
 import geopandas as gpd
 import numpy as np
+import pytest
+import rasterio
 from shapely.geometry import Polygon
+
 from shrub_prepro.processing.raster import clip_raster_to_extent, create_binary_raster
 
 

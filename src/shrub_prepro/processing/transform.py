@@ -1,11 +1,12 @@
-import rasterio
-from rasterio.windows import Window
-import geopandas as gpd
-from shapely.geometry import shape
-import numpy as np
-from PIL import Image
 import os
+
+import geopandas as gpd
+import numpy as np
+import rasterio
 import tqdm
+from PIL import Image
+from rasterio.windows import Window
+from shapely.geometry import shape
 
 
 def process_data(

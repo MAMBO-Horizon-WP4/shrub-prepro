@@ -2,7 +2,7 @@ import geopandas as gpd
 import rasterio
 from rasterio.features import rasterize
 from rasterio.mask import mask
-from shapely.geometry import shape, box
+from shapely.geometry import box, shape
 
 
 def clip_raster_to_extent(raster_path, shapefile_path, output_path):

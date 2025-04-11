@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+
 from shrub_prepro.processing.raster import clip_raster_to_extent, create_binary_raster
 from shrub_prepro.processing.transform import process_data
 

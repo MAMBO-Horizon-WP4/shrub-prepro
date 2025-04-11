@@ -9,7 +9,7 @@ description = "Process shrub data from RGB imagery"
 requires-python = ">=3.8"
 dependencies = [
     "rasterio",
-    "geopandas",
+    "geopandas>=0.14.4",
     "shapely",
     "scipy",
     "Pillow",

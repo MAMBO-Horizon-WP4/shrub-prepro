@@ -14,9 +14,11 @@ def test_data_dir():
 
 
 @pytest.fixture
-def sample_raster(test_data_dir):
+def sample_raster(tmp_path):
     """Create a small test raster."""
-    raster_path = test_data_dir / "sample.tif"
+    raster_dir = tmp_path / "input"
+    raster_dir.mkdir(parents=True, exist_ok=True)
+    raster_path = raster_dir / "sample.tif"
 
     # Create 10x10 RGB raster
     with rasterio.open(
@@ -38,19 +40,24 @@ def sample_raster(test_data_dir):
 
 
 @pytest.fixture
-def sample_polygons(test_data_dir):
+def sample_polygons(tmp_path):
     """Create a small test shapefile."""
+    poly_dir = tmp_path / "input"
+    poly_dir.mkdir(parents=True, exist_ok=True)
+
     polygon = Polygon([(0.2, 0.2), (0.8, 0.2), (0.8, 0.8), (0.2, 0.8)])
     gdf = gpd.GeoDataFrame({"geometry": [polygon]}, crs="EPSG:4326")
 
-    output_path = test_data_dir / "sample.shp"
+    output_path = poly_dir / "sample.shp"
     gdf.to_file(output_path)
     return output_path
 
 
-def test_clip_raster_to_extent(test_data_dir, sample_raster, sample_polygons):
+def test_clip_raster_to_extent(sample_raster, sample_polygons, tmp_path):
     """Test that clipping produces a valid smaller raster."""
-    output_path = test_data_dir / "clipped.tif"
+    output_dir = tmp_path / "output"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / "clipped.tif"
 
     clip_raster_to_extent(sample_raster, sample_polygons, output_path)
 
@@ -60,9 +67,11 @@ def test_clip_raster_to_extent(test_data_dir, sample_raster, sample_polygons):
         assert src.count == 3  # Should maintain RGB channels
 
 
-def test_create_binary_raster(test_data_dir, sample_raster, sample_polygons):
+def test_create_binary_raster(sample_raster, sample_polygons, tmp_path):
     """Test that binary raster creation produces valid output."""
-    output_path = test_data_dir / "binary.tif"
+    output_dir = tmp_path / "output"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / "binary.tif"
 
     create_binary_raster(sample_raster, sample_polygons, output_path)
 

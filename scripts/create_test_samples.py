@@ -5,11 +5,53 @@ from pathlib import Path
 import rasterio
 import geopandas as gpd
 import s3fs
-from shapely.geometry import box
+
+
+def get_sample_bbox(raster_path: str, max_pixels: int = 1000) -> tuple:
+    """
+    Generate a sample bbox from COG metadata that will result in a window < max_pixels.
+
+    Args:
+        raster_path: S3 path to COG
+        max_pixels: Maximum size in pixels for either dimension
+
+    Returns:
+        tuple: (minx, miny, maxx, maxy)
+    """
+    fs = s3fs.S3FileSystem(anon=False)
+    with rasterio.open(fs.open(raster_path)) as src:
+        # Get full bounds
+        bounds = src.bounds
+        transform = src.transform
+
+        # Calculate center point
+        center_x = (bounds.left + bounds.right) / 2
+        center_y = (bounds.bottom + bounds.top) / 2
+
+        # Calculate pixel size
+        pixel_width = abs(transform[0])
+        pixel_height = abs(transform[4])
+
+        # Calculate bbox size that will give us < max_pixels
+        width_meters = pixel_width * max_pixels * 0.9  # 90% of max to be safe
+        height_meters = pixel_height * max_pixels * 0.9
+
+        # Create bbox centered on image center
+        minx = center_x - (width_meters / 2)
+        maxx = center_x + (width_meters / 2)
+        miny = center_y - (height_meters / 2)
+        maxy = center_y + (height_meters / 2)
+
+        return (minx, miny, maxx, maxy)
 
 
 def create_test_samples(
-    s3_raster: str, s3_polygons: str, output_dir: Path, bbox: tuple, label: str = "test"
+    s3_raster: str,
+    s3_polygons: str,
+    output_dir: Path,
+    bbox: tuple = None,
+    label: str = "test",
+    max_pixels: int = 1000,
 ):
     """
     Extract small samples from S3 data for testing.
@@ -18,13 +60,19 @@ def create_test_samples(
         s3_raster: S3 path to raster (e.g. s3://bucket/rgb.tif)
         s3_polygons: S3 path to polygons (e.g. s3://bucket/shrubs.shp)
         output_dir: Local directory to save samples
-        bbox: Tuple of (minx, miny, maxx, maxy)
+        bbox: Optional tuple of (minx, miny, maxx, maxy). If None, auto-generated
         label: Label for output files
+        max_pixels: Maximum size in pixels for auto-generated bbox
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    bbox_geom = box(*bbox)
+    # Auto-generate bbox if not provided
+    if bbox is None:
+        print("Generating sample bbox from COG metadata...")
+        bbox = get_sample_bbox(s3_raster, max_pixels)
+        print(f"Generated bbox: {bbox}")
+
     fs = s3fs.S3FileSystem(anon=False)
 
     # Extract raster window
@@ -64,17 +112,27 @@ def main():
     parser.add_argument("--output-dir", required=True, help="Output directory")
     parser.add_argument(
         "--bbox",
-        required=True,
         nargs=4,
         type=float,
-        help="Bounding box: minx miny maxx maxy",
+        help="Optional bounding box: minx miny maxx maxy. If not provided, auto-generated",
     )
     parser.add_argument("--label", default="test", help="Label for output files")
+    parser.add_argument(
+        "--max-pixels",
+        type=int,
+        default=1000,
+        help="Maximum size in pixels for auto-generated bbox",
+    )
 
     args = parser.parse_args()
 
     create_test_samples(
-        args.s3_raster, args.s3_polygons, args.output_dir, tuple(args.bbox), args.label
+        args.s3_raster,
+        args.s3_polygons,
+        args.output_dir,
+        tuple(args.bbox) if args.bbox else None,
+        args.label,
+        args.max_pixels,
     )
 
 

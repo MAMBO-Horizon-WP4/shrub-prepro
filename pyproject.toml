@@ -6,10 +6,10 @@ build-backend = "setuptools.build_meta"
 name = "shrub-prepro"
 version = "0.1.0"
 description = "Process shrub data from RGB imagery"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "rasterio",
-    "geopandas>=0.14.4",
+    "geopandas",
     "shapely",
     "scipy",
     "Pillow",

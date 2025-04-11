@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shrub-prepro"
+version = "0.1.0"
+description = "Process shrub data from RGB imagery"
+requires-python = ">=3.8"
+dependencies = [
+    "rasterio",
+    "geopandas",
+    "shapely",
+    "scipy",
+    "Pillow",
+    "s3fs",
+    "tqdm"
+]
+
+[project.scripts]
+shrub-prepro = "shrub_prepro.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "black",
+    "isort",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

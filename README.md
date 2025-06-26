@@ -1,24 +1,26 @@
 # Shrub Samples Pre-Processing
 
-This repository contains scripts for pre-processing geospatial data, specifically for:
+This repository provides a Python package and CLI for pre-processing geospatial data, specifically for:
 - Creating binary masks from shapefiles.
 - Combining RGB imagery with DSM data into processed samples.
 - Generating rotated versions of processed images.
+- Supporting both local and S3 input data.
 
 ## Installation
 
 1. Create and activate a virtual environment:
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate
+    ```
 
-2. Install in development mode:
-```bash
-pip install -e ".[dev]"
-```
+2. Install the package in development mode with all dev dependencies:
+    ```bash
+    pip install -e ".[dev]"
+    ```
 
 ## Folder Structure
+
 ```
 shrub-prepro/
 │
@@ -27,30 +29,34 @@ shrub-prepro/
 │   └── output/
 │       ├── samples/
 │       └── images/
-└── src
-    ├── __init__.py
-    ├── run_pipeline.py
-    ├── shrub_prepro
-    │   ├── cli.py
-    │   ├── __init__.py
-    │   ├── io
-    │   │   ├── __init__.py
-    │   │   └── s3.py
-    │   └── processing
-    │       ├── __init__.py
-    │       ├── raster.py
-    │       └── transform.py
+├── scripts/
+│   └── create_test_samples.py
+├── src/
+│   ├── __init__.py
+│   ├── run_pipeline.py
+│   └── shrub_prepro/
+│       ├── __init__.py
+│       ├── cli.py
+│       ├── images.py
+│       ├── io.py
+│       └── processing/
+│           ├── __init__.py
+│           ├── raster.py
+│           └── transform.py
 ├── tests/
+│   └── test_pipeline.py
+├── .github/
+│   └── workflows/
+│       └── tests.yml
 ├── .gitignore
 ├── README.md
-├── requirements.txt
+├── pyproject.toml
 ```
 
-## How to Use
-1. Place input files in `data/input/` or use S3 paths:
-    - RGB raster
-    - Polygons shapefile
-2. Run the pipeline using the CLI:
+## Usage
+
+You can run the main pipeline from the command line, using either local or S3 paths for input:
+
 ```bash
 shrub-prepro \
     --input-raster s3://bucket/path/to/rgb.tif \
@@ -58,21 +64,47 @@ shrub-prepro \
     --output-dir data/output \
     --label rgb
 ```
-3. Outputs will be saved in `data/output/`:
-    - Image files with individual shrubs (images)
-    - Binary masks with pixels belonging to shrubs (samples)
+
+Outputs will be saved in `data/output/`:
+- Image files with individual shrubs (images)
+- Binary masks with pixels belonging to shrubs (samples)
+
+### Creating Test Samples from S3
+
+To generate small test samples from large S3 datasets for local testing:
+
+```bash
+python scripts/create_test_samples.py \
+    --s3-raster s3://bucket/path/to/rgb.tif \
+    --s3-polygons s3://bucket/path/to/shrubs.shp \
+    --output-dir tests/data
+```
 
 ## Development
 
-Run tests:
-```bash
-pytest
-```
+- Run tests:
+    ```bash
+    pytest
+    ```
 
-Run tests with coverage:
-```bash
-pytest --cov=shrub_prepro
-```
+- Run tests with coverage:
+    ```bash
+    pytest --cov=shrub_prepro
+    ```
+
+- Lint the code:
+    ```bash
+    black --check src tests
+    isort --check-only src tests
+    ```
+
+## Continuous Integration
+
+- GitHub Actions workflow runs on every push and pull request:
+    - Lints the code with `black` and `isort`
+    - Runs all tests with coverage
+    - Uploads the coverage report as an artifact
 
 ## License
+
 MIT License

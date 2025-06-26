@@ -13,6 +13,7 @@ dependencies = [
     "shapely",
     "scipy",
     "Pillow",
+    "python-dotenv",
     "s3fs",
     "tqdm"
 ]

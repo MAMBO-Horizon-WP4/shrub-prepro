@@ -6,7 +6,7 @@ import pytest
 import rasterio
 from shapely.geometry import Polygon
 
-from shrub_prepro.processing.raster import clip_raster_to_extent, create_binary_raster
+from shrub_prepro import images
 
 
 @pytest.fixture
@@ -55,34 +55,6 @@ def sample_polygons(tmp_path):
     return output_path
 
 
-def test_clip_raster_to_extent(sample_raster, sample_polygons, tmp_path):
-    """Test that clipping produces a valid smaller raster."""
-    output_dir = tmp_path / "output"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / "clipped.tif"
-
-    clip_raster_to_extent(sample_raster, sample_polygons, output_path)
-
-    with rasterio.open(output_path) as src:
-        assert src.shape[0] <= 10  # Should be smaller than original
-        assert src.shape[1] <= 10
-        assert src.count == 3  # Should maintain RGB channels
-
-
-def test_create_binary_raster(sample_raster, sample_polygons, tmp_path):
-    """Test that binary raster creation produces valid output."""
-    output_dir = tmp_path / "output"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / "binary.tif"
-
-    create_binary_raster(sample_raster, sample_polygons, output_path)
-
-    with rasterio.open(output_path) as src:
-        data = src.read(1)  # Read first band
-        assert data.dtype == np.uint8
-        assert set(np.unique(data)).issubset({0, 1})  # Should only contain 0s and 1s
-
-
 @pytest.fixture(autouse=True)
 def cleanup(test_data_dir):
     """Clean up test files after each test."""
@@ -90,3 +62,38 @@ def cleanup(test_data_dir):
     # Comment out during test development to inspect outputs
     for file in test_data_dir.glob("*"):
         file.unlink()
+
+
+def test_patch_window(sample_polygons, sample_raster):
+    """Test that patch_window returns a valid rasterio window."""
+    gdf = gpd.read_file(sample_polygons)
+    with rasterio.open(sample_raster) as img:
+        window = images.patch_window(gdf.geometry.iloc[0], img, patch_size=6)
+        assert isinstance(window, rasterio.windows.Window)
+        # The window should be the requested size
+        assert window.width == 6
+        assert window.height == 6
+
+
+def test_shrub_labels_in_window(sample_polygons, sample_raster):
+    """Test that shrub_labels_in_window returns intersecting geometries."""
+    gdf = gpd.read_file(sample_polygons)
+    with rasterio.open(sample_raster) as img:
+        window = images.patch_window(gdf.geometry.iloc[0], img, patch_size=10)
+        intersecting = images.shrub_labels_in_window(gdf.geometry, window, img)
+        assert isinstance(intersecting, gpd.GeoSeries)
+        # Should not be empty for this synthetic data
+        assert not intersecting.empty
+
+
+def test_label_patch_with_window(sample_polygons, sample_raster):
+    """Test that label_patch_with_window returns a correct rasterized array."""
+    gdf = gpd.read_file(sample_polygons)
+    with rasterio.open(sample_raster) as img:
+        window = images.patch_window(gdf.geometry.iloc[0], img, patch_size=10)
+        intersecting = images.shrub_labels_in_window(gdf.geometry, window, img)
+        arr = images.label_patch_with_window(intersecting, window, img)
+        assert isinstance(arr, np.ndarray)
+        assert arr.shape == (10, 10)
+        # Should contain the default value (255) and possibly 0
+        assert np.any(arr == 255)

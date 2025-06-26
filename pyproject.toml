@@ -11,9 +11,9 @@ dependencies = [
     "rasterio",
     "geopandas",
     "shapely",
-    "scipy",
-    "Pillow",
+    "python-dotenv",
     "s3fs",
+    "scikit-learn",
     "tqdm"
 ]
 

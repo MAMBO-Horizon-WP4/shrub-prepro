@@ -117,7 +117,6 @@ def background_samples(
     shrub_union = shrub_buffer.unary_union
 
     # Determine the number of negative samples to generate
-    # Let's start with 5 times the number of positive examples (shrubs)
     num_positive_samples = len(shrubs)
     num_negative_samples = num_positive_samples * 2  # Adjust this ratio as needed
 

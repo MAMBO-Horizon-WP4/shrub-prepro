@@ -53,15 +53,19 @@ def process_data(
             window = patch_window(shrub.geometry, image, patch_size=window_size)
             labels = shrub_labels_in_window(shrubs, window, image)
             arr = label_patch_with_window(labels, window, image)
-            save_image_patch(window, image, index, label=label, dir=images_dir)
-            save_label_patch(arr, window, image, index, label=label, dir=labels_dir)
+            save_image_patch(window, image, index, label=label, directory=images_dir)
+            save_label_patch(
+                arr, window, image, index, label=label, directory=labels_dir
+            )
 
         negative_windows = background_samples(image, shrubs)
         for index, neg_window in enumerate(
             tqdm(negative_windows, total=len(negative_windows))
         ):
-            save_image_patch(neg_window, image, index, label="negative", dir="images")
+            save_image_patch(
+                neg_window, image, index, label="negative", directory=images_dir
+            )
 
         save_label_patch(
-            background_label(), window, image, 0, label="negative", dir="train/labels"
+            background_label(), window, image, 0, label="negative", directory=labels_dir
         )

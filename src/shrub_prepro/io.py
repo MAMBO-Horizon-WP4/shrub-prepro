@@ -24,7 +24,7 @@ def save_label_patch(
     image: rasterio.DatasetReader,
     index: int,
     label: str = "shrubs",
-    dir: str = "labels",
+    directory: str = "labels",
 ) -> None:
     """
     Save a single-channel label patch as a GeoTIFF file.
@@ -51,7 +51,7 @@ def save_label_patch(
         }
     )
 
-    original_path = os.path.join(dir, f"{label}_{index}.tif")
+    original_path = os.path.join(directory, f"{label}_{index}.tif")
     with rasterio.open(original_path, "w", **meta) as dst:
         dst.write(data, 1)
 
@@ -61,7 +61,7 @@ def save_image_patch(
     image: rasterio.DatasetReader,
     index: int,
     label: str = "shrubs",
-    dir: str = "images",
+    directory: str = "images",
 ) -> rasterio.DatasetReader:
     """
     Save a multi-channel image patch as a GeoTIFF file.
@@ -89,6 +89,6 @@ def save_image_patch(
         }
     )
 
-    original_path = os.path.join(dir, f"{label}_{index}.tif")
+    original_path = os.path.join(directory, f"{label}_{index}.tif")
     with rasterio.open(original_path, "w", **meta) as dst:
         dst.write(image_patch)

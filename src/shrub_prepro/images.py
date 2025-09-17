@@ -50,8 +50,7 @@ def shrub_labels_in_window(
     Returns:
         gpd.GeoSeries: Series of geometries intersecting the window, with empty geometries removed.
     """
-    transform = rasterio.windows.transform(window, image.transform)
-    bounds = rasterio.windows.bounds(window, transform)
+    bounds = rasterio.windows.bounds(window, image.transform)
     bbox = box(*bounds)
     s = geometries.intersection(bbox)
     out_series = s[~(s.is_empty)]

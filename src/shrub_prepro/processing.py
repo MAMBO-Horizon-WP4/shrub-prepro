@@ -2,7 +2,7 @@ import os
 
 import geopandas as gpd
 import rasterio
-import tqdm
+from tqdm import tqdm
 from pathlib import Path
 
 

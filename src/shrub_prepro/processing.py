@@ -48,7 +48,7 @@ def process_data(
         shrubs = gpd.read_file(shapefile_path)
 
         for index, shrub in tqdm(
-            shrubs.iterrows(), total=len(shrubs), desc="Processing Samples"
+            shrubs.iterrows(), total=len(shrubs), desc="Shrub images and labels"
         ):
             window = patch_window(shrub.geometry, image, patch_size=window_size)
             labels = shrub_labels_in_window(shrubs, window, image)
@@ -58,9 +58,14 @@ def process_data(
                 arr, window, image, index, label=label, directory=labels_dir
             )
 
+        print("Selecting background examples")
         negative_windows = background_samples(image, shrubs)
         for index, neg_window in enumerate(
-            tqdm(negative_windows, total=len(negative_windows))
+            tqdm(
+                negative_windows,
+                total=len(negative_windows),
+                desc="Background images and labels",
+            )
         ):
             save_image_patch(
                 neg_window, image, index, label="negative", directory=images_dir

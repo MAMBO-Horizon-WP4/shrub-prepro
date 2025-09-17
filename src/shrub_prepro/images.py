@@ -82,7 +82,7 @@ def label_patch_with_window(
 
 
 def background_samples(
-    image: rasterio.io.DatasetReader, shrubs: gpd.GeoDataFrame, window_size: int = 256
+    image: rasterio.io.DatasetReader, shrubs: gpd.GeoDataFrame, window_size: int = 512
 ) -> list:
     """
     Generate negative samples (background patches) from the image that do not overlap with shrub polygons.
@@ -184,6 +184,8 @@ def background_samples(
     return negative_windows
 
 
-def background_label(size: int = 256) -> np.ndarray:
-    """Return a 2D array of size*size all zeros, for use as a background label (no features)"""
+def background_label(size: int = 512) -> np.ndarray:
+    """Return a 2D array of size*size all zeros, for use as a background label (no features)
+    Defaults to size 512 input"""
+
     return np.zeros((size, size), dtype=np.uint8)

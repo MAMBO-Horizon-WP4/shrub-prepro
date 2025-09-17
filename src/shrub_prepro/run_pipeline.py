@@ -14,6 +14,7 @@ def main():
         help="S3 path or local path to input polygons",
     )
     parser.add_argument("--output-dir", required=True, help="Output directory (local)")
+    parser.add_argument("--output-size", default=512, help="Patch size (default 512)")
     parser.add_argument("--label", default="rgb", help="Label for output files")
 
     args = parser.parse_args()
@@ -23,7 +24,13 @@ def main():
     # Pipeline steps
     print("Preparing training data...")
 
-    process_data(args.input_raster, args.input_polygons, output_dir, label=args.label)
+    process_data(
+        args.input_raster,
+        args.input_polygons,
+        output_dir,
+        window_size=args.output_size,
+        label=args.label,
+    )
 
 
 if __name__ == "__main__":

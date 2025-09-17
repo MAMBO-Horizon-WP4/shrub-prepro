@@ -3,7 +3,7 @@ from pathlib import Path
 from shrub_prepro.processing import process_data
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Process shrub data from RGB imagery")
     parser.add_argument(
         "--input-raster", required=True, help="S3 path or local path to input raster"
@@ -24,3 +24,7 @@ if __name__ == "__main__":
     print("Preparing training data...")
 
     process_data(args.input_raster, args.input_polygons, output_dir, label=args.label)
+
+
+if __name__ == "__main__":
+    main()

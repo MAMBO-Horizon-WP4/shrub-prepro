@@ -14,7 +14,9 @@ def main():
         help="S3 path or local path to input polygons",
     )
     parser.add_argument("--output-dir", required=True, help="Output directory (local)")
-    parser.add_argument("--output-size", default=512, help="Patch size (default 512)")
+    parser.add_argument(
+        "--output-size", default=512, type=int, help="Patch size (default 512)"
+    )
     parser.add_argument("--label", default="rgb", help="Label for output files")
 
     args = parser.parse_args()

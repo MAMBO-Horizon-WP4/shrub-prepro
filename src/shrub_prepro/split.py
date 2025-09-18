@@ -1,12 +1,16 @@
 from sklearn.model_selection import train_test_split
 import shutil
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
-def test_train_test_split(output_dir: str):
+def test_train_split(output_dir: str, label: str = "shrubs"):
     """
     Splits the dataset into training and testing sets based on the indices of image and label files.
-    Assumes that image and label files are named in a consistent format with an index (e.g., 'shrubs_0.tif').
+    Assumes that image and label files are named in a consistent format with an index (e.g., 'shrubs_0.tif') - but the prefix can be different.
+    For our background images, there's only one label (negative_0.tif) - make sure it's included in the training set!
     """
     # Get list of image and label files
     image_files = [
@@ -50,8 +54,8 @@ def test_train_test_split(output_dir: str):
     # Function to move files based on index and type
     def move_files(indices, source_dir, dest_dir):
         for index in indices:
-            image_filename = f"shrubs_{index}.tif"
-            label_filename = f"shrubs_{index}.tif"
+            image_filename = f"{label}_{index}.tif"
+            label_filename = f"{label}_{index}.tif"
 
             source_image_path = os.path.join(source_dir, "images", image_filename)
             source_label_path = os.path.join(source_dir, "labels", label_filename)
@@ -62,14 +66,14 @@ def test_train_test_split(output_dir: str):
             if os.path.exists(source_image_path):
                 shutil.move(source_image_path, dest_image_path)
             else:
-                print(
+                logging.info(
                     f"Warning: Image file not found for index {index}: {source_image_path}"
                 )
 
             if os.path.exists(source_label_path):
                 shutil.move(source_label_path, dest_label_path)
             else:
-                print(
+                logging.info(
                     f"Warning: Label file not found for index {index}: {source_label_path}"
                 )
 
@@ -77,7 +81,7 @@ def test_train_test_split(output_dir: str):
     move_files(train_indices, output_dir, train_dir)
     move_files(test_indices, output_dir, test_dir)
 
-    print(
+    logging.info(
         f"Data split into train ({len(train_indices)} samples) and test ({len(test_indices)} samples)."
     )
-    print(f"Files moved to {train_dir} and {test_dir}.")
+    logging.info(f"Files moved to {train_dir} and {test_dir}.")

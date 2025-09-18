@@ -2,7 +2,7 @@ import os
 
 import geopandas as gpd
 import rasterio
-import tqdm
+from tqdm import tqdm
 from pathlib import Path
 
 
@@ -14,6 +14,7 @@ from shrub_prepro.images import (
     background_label,
 )
 from shrub_prepro.io import save_image_patch, save_label_patch
+from shrub_prepro.split import test_train_split
 
 
 def process_data(
@@ -43,25 +44,45 @@ def process_data(
     os.makedirs(labels_dir, exist_ok=True)
     os.makedirs(images_dir, exist_ok=True)
 
-    # Open the raster and shapefile
-    with rasterio.open(raster_path) as image:
-        shrubs = gpd.read_file(shapefile_path)
+    # Source of our polygon labels
+    shrubs = gpd.read_file(shapefile_path)
+    total_shrubs = len(shrubs)
 
+    # Open the raster once, and read small windows from it.
+    with rasterio.open(raster_path) as image:
         for index, shrub in tqdm(
-            shrubs.iterrows(), total=len(shrubs), desc="Processing Samples"
+            shrubs.iterrows(), total=len(shrubs), desc="Shrub images and labels"
         ):
             window = patch_window(shrub.geometry, image, patch_size=window_size)
             labels = shrub_labels_in_window(shrubs, window, image)
             arr = label_patch_with_window(labels, window, image)
-            save_image_patch(window, image, index, label=label, dir=images_dir)
-            save_label_patch(arr, window, image, index, label=label, dir=labels_dir)
+            save_image_patch(window, image, index, label=label, directory=images_dir)
+            save_label_patch(
+                arr, window, image, index, label=label, directory=labels_dir
+            )
 
-        negative_windows = background_samples(image, shrubs)
+        print("Selecting background examples")
+        negative_windows = background_samples(image, shrubs, window_size=window_size)
         for index, neg_window in enumerate(
-            tqdm(negative_windows, total=len(negative_windows))
+            tqdm(
+                negative_windows,
+                total=len(negative_windows),
+                desc="Background images and labels",
+            )
         ):
-            save_image_patch(neg_window, image, index, label="negative", dir="images")
+            idx = total_shrubs + index
+            # Use the same label string as filename; start index after shrubs end
+            save_image_patch(neg_window, image, idx, label=label, directory=images_dir)
 
-        save_label_patch(
-            background_label(), window, image, 0, label="negative", dir="train/labels"
-        )
+            save_label_patch(
+                background_label(),
+                window,
+                image,
+                idx,
+                label=label,
+                directory=labels_dir,
+            )
+
+    # Finally break this into a dedicated test set the model will never see,
+    # And leave the rest for training/validation
+    test_train_split(output_dir)

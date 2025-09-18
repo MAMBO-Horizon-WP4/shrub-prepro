@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .venv
+.env
 *.egg-info
 # Ignore system files
 .DS_Store

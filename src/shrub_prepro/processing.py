@@ -62,7 +62,9 @@ def process_data(
             )
 
         print("Selecting background examples")
-        negative_windows = background_samples(image, shrubs, window_size=window_size)
+        negative_windows = background_samples(
+            image, shrubs, window_size=window_size, within_df=True
+        )
         for index, neg_window in enumerate(
             tqdm(
                 negative_windows,

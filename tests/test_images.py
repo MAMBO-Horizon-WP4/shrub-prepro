@@ -14,9 +14,7 @@ def test_patch_window(sample_polygons, sample_raster):
     """Test patch_window returns a valid rasterio window of correct size."""
     gdf = gpd.read_file(sample_polygons)
     with rasterio.open(sample_raster) as img:
-        windows = patch_window(gdf.geometry.iloc[0], img, patch_size=8)
-        assert isinstance(windows, list)
-        window = windows[0]
+        window = patch_window(gdf.geometry.iloc[0], img, patch_size=8)
         assert isinstance(window, rasterio.windows.Window)
         assert window.width == 8
         assert window.height == 8
@@ -26,12 +24,10 @@ def test_shrub_labels_in_window(sample_polygons, sample_raster):
     """Test shrub_labels_in_window returns intersecting geometries."""
     gdf = gpd.read_file(sample_polygons)
     with rasterio.open(sample_raster) as img:
-        windows = patch_window(gdf.geometry.iloc[0], img, patch_size=4)
-        assert len(windows)
-        for window in windows:
-            intersecting = shrub_labels_in_window(gdf.geometry, window, img)
-            assert isinstance(intersecting, gpd.GeoSeries)
-            assert not intersecting.empty
+        window = patch_window(gdf.geometry.iloc[0], img, patch_size=4)
+        intersecting = shrub_labels_in_window(gdf.geometry, window, img)
+        assert isinstance(intersecting, gpd.GeoSeries)
+        assert not intersecting.empty
 
 
 def test_label_patch_with_window(sample_polygons, sample_raster):
@@ -39,14 +35,12 @@ def test_label_patch_with_window(sample_polygons, sample_raster):
     gdf = gpd.read_file(sample_polygons)
     with rasterio.open(sample_raster) as img:
         window = patch_window(gdf.geometry.iloc[1], img, patch_size=10)
-        assert len(windows)
-        for window in windows:
-            intersecting = shrub_labels_in_window(gdf.geometry, window, img)
-            arr = label_patch_with_window(intersecting, window, img)
-            assert isinstance(arr, np.ndarray)
-            assert arr.shape == (10, 10)
-            # We changed the fixtures for background selection, this is now fragile
-            # assert np.any(arr == 255)
+        intersecting = shrub_labels_in_window(gdf.geometry, window, img)
+        arr = label_patch_with_window(intersecting, window, img)
+        assert isinstance(arr, np.ndarray)
+        assert arr.shape == (10, 10)
+        # We changed the fixtures for background selection, this is now fragile
+        # assert np.any(arr == 255)
 
 
 def test_background_label():

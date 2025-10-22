@@ -35,9 +35,9 @@ def sample_polygons(tmp_path):
     """Create a GeoDataFrame with a few polygons within the raster bounds (UTM meters)."""
     # These polygons are within the (500000,0)-(502000,2000) bounds
     polys = [
-        Polygon([(500100, 1100), (500300, 1100), (500300, 1300), (500100, 1300)]),
-        Polygon([(501000, 1000), (501200, 1000), (501200, 1200), (501000, 1200)]),
-        Polygon([(500400, 1600), (500600, 1600), (500600, 1800), (500400, 1800)]),
+        Polygon([(500010, 110), (500030, 110), (500030, 130), (500010, 130)]),
+        Polygon([(500100, 100), (500120, 100), (500120, 120), (500100, 120)]),
+        Polygon([(501040, 1600), (501060, 1600), (501060, 1800), (501040, 1800)]),
     ]
     gdf = gpd.GeoDataFrame({"geometry": polys}, crs="EPSG:32633")
     poly_path = tmp_path / "sample_polygons.gpkg"

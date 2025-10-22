@@ -3,7 +3,9 @@ import geopandas as gpd
 from rasterio.windows import Window
 from shapely.geometry import box
 from rasterio.features import rasterize
+from rasterio.coords import BoundingBox
 import random
+from typing import Optional
 import numpy as np
 import logging
 
@@ -72,6 +74,7 @@ def label_patch_with_window(
         np.ndarray: The rasterized label patch as a 2D numpy array.
     """
     transform = rasterio.windows.transform(window, image.transform)
+
     arr = rasterize(
         geoms.geometry,
         out_shape=(int(window.height), int(window.width)),
@@ -82,7 +85,10 @@ def label_patch_with_window(
 
 
 def background_samples(
-    image: rasterio.io.DatasetReader, shrubs: gpd.GeoDataFrame, window_size: int = 512
+    image: rasterio.io.DatasetReader,
+    shrubs: gpd.GeoDataFrame,
+    window_size: int = 512,
+    within_df: Optional[list] = False,
 ) -> list:
     """
     Generate negative samples (background patches) from the image that do not overlap with shrub polygons.
@@ -90,6 +96,8 @@ def background_samples(
     Parameters:
         image (rasterio.io.DatasetReader): Opened rasterio dataset of the image.
         shrubs (gpd.GeoDataFrame): GeoDataFrame containing shrub polygons.
+        window_size (int): Optional, defaults to 512
+        within_df: (bool): Optional, default False - only sample the image within the bounds of the dataframe
 
     Returns:
         list: List of rasterio.windows.Window objects representing negative samples.
@@ -97,6 +105,10 @@ def background_samples(
 
     # Get the bounding box of the image
     img_bounds = image.bounds
+
+    # If we're limiting our view to the annotated area, replace the bounding box
+    if within_df:
+        img_bounds = BoundingBox(*shrubs.total_bounds.tolist())
 
     # Buffer the shrub polygons slightly to ensure negative windows don't touch them
     shrub_buffer = shrubs.copy()
@@ -122,6 +134,7 @@ def background_samples(
     negative_windows = []  # Set up a list of empty patches
 
     # Generate random points within the image bounds until we have enough negative windows
+    logging.info(f"Attempting to generate {num_negative_samples} negative windows...")
     logging.info(f"Attempting to generate {num_negative_samples} negative windows...")
     attempts = 0
     max_attempts = num_negative_samples * 10  # Limit attempts to avoid infinite loops
@@ -154,7 +167,7 @@ def background_samples(
         window_bbox = box(*window_bounds)
 
         # Check if the potential window is entirely within the image bounds
-        if not box(*img_bounds).contains(window_bbox):
+        if not box(*image.bounds).contains(window_bbox):
             attempts += 1
             continue
 

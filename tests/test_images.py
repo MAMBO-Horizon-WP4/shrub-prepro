@@ -38,7 +38,7 @@ def test_label_patch_with_window(sample_polygons, sample_raster):
     """Test label_patch_with_window returns a correct rasterized array."""
     gdf = gpd.read_file(sample_polygons)
     with rasterio.open(sample_raster) as img:
-        window = patch_window(gdf.geometry.iloc[1], img, patch_size=10)
+        windows = patch_window(gdf.geometry.iloc[1], img, patch_size=10)
         assert len(windows)
         for window in windows:
             intersecting = shrub_labels_in_window(gdf.geometry, window, img)

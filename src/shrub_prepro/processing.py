@@ -8,10 +8,13 @@ from pathlib import Path
 
 from shrub_prepro.images import (
     patch_window,
+    shrub_window,
+    shrub_overlaps,
     label_patch_with_window,
     shrub_labels_in_window,
     background_samples,
     background_label,
+    is_shrub_huge,
 )
 from shrub_prepro.io import save_image_patch, save_label_patch
 from shrub_prepro.split import test_train_split
@@ -53,13 +56,27 @@ def process_data(
         for index, shrub in tqdm(
             shrubs.iterrows(), total=len(shrubs), desc="Shrub images and labels"
         ):
-            window = patch_window(shrub.geometry, image, patch_size=window_size)
-            labels = shrub_labels_in_window(shrubs, window, image)
-            arr = label_patch_with_window(labels, window, image)
-            save_image_patch(window, image, index, label=label, directory=images_dir)
-            save_label_patch(
-                arr, window, image, index, label=label, directory=labels_dir
-            )
+            windows = []
+            # Window defined by the shrub bounds
+            shrub_px = shrub_window(shrub, image)
+            print(shrub_px.height, shrub_px.width)
+            if is_shrub_huge(shrub_px, window_size):
+                print("IT'S HUGE!!")
+                windows = shrub_overlaps(shrub, image, window_size)
+            else:
+                windows = [patch_window(shrub.geometry, image, patch_size=window_size)]
+
+            for i, window in enumerate(windows):
+                # Naming scheme, track whether a shrub has multi windows
+                use_index = f"{index}.{i}"
+                labels = shrub_labels_in_window(shrubs, window, image)
+                arr = label_patch_with_window(labels, window, image)
+                save_image_patch(
+                    window, image, use_index, label=label, directory=images_dir
+                )
+                save_label_patch(
+                    arr, window, image, use_index, label=label, directory=labels_dir
+                )
 
         print("Selecting background examples")
         negative_windows = background_samples(

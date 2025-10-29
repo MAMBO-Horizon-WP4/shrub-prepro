@@ -2,6 +2,7 @@ import os
 import s3fs
 import rasterio
 import numpy as np
+from typing import Any
 
 
 def get_s3_file(s3_path):
@@ -22,7 +23,7 @@ def save_label_patch(
     data: np.ndarray,
     window: rasterio.windows.Window,
     image: rasterio.DatasetReader,
-    index: int,
+    index: Any,
     label: str = "shrubs",
     directory: str = "labels",
 ) -> None:

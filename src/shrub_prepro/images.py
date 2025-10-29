@@ -1,12 +1,13 @@
 import rasterio
 import geopandas as gpd
-from rasterio.windows import Window
+from rasterio.windows import Window, from_bounds
 from shapely.geometry import box
 from rasterio.features import rasterize
 from rasterio.coords import BoundingBox
 import random
 from typing import Optional
 import numpy as np
+import pandas as pd
 import logging
 
 
@@ -28,12 +29,50 @@ def patch_window(
     half_patch = patch_size // 2
 
     center_x, center_y = geom.centroid.x, geom.centroid.y
-    row_col = image.index(center_x, center_y)
+    row, col = image.index(center_x, center_y)
 
-    window = Window(
-        row_col[1] - half_patch, row_col[0] - half_patch, patch_size, patch_size
-    )
+    window = Window(col - half_patch, row - half_patch, patch_size, patch_size)
     return window
+
+
+def shrub_window(
+    shrub: pd.Series, image: rasterio.DatasetReader
+) -> rasterio.windows.Window:
+    """
+    Return a pixel window for the bounding box of the shrub
+    """
+    bounds = shrub.geometry.bounds
+    win = from_bounds(*bounds, image.transform)
+    return win
+
+
+def is_shrub_huge(shrub_px: rasterio.windows.Window, size: int = 512):
+    """Utility to check whether the shrub bounds, in pixels,
+    is bigger than the patch size used to create training examples
+
+    Args: shrub_px (a rasterio Window)
+          patch_size (h/w of a square in px, default 512)
+    """
+
+    return shrub_px.height > size or shrub_px.width > size
+
+
+def shrub_overlaps(
+    shrub: pd.Series, image: rasterio.DatasetReader, patch_size: int = 512
+) -> list:
+    """Return four overlapping windows that each contain part of a shrub geometry
+    Suitable in a case where our canopy is larger than the patch size
+    """
+    shift = patch_size * 0.75
+    center_x, center_y = shrub.geometry.centroid.x, shrub.geometry.centroid.y
+    row, col = image.index(center_x, center_y)
+    windows = []
+    windows.append(Window(col - shift, row - shift, patch_size, patch_size))
+    windows.append(Window(col, row - shift, patch_size, patch_size))
+
+    windows.append(Window(col - shift, row, patch_size, patch_size))
+    windows.append(Window(col, row, patch_size, patch_size))
+    return windows
 
 
 def shrub_labels_in_window(

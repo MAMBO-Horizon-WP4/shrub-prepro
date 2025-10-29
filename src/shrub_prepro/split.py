@@ -24,7 +24,9 @@ def test_train_split(output_dir: str, label: str = "shrubs"):
 
     # Extract the index from the filename (assuming format like 'shrubs_index.tif')
     def get_index(filename):
-        return int(os.path.basename(filename).split("_")[-1].split(".")[0])
+        image = os.path.basename(filename).split("_")[-1]
+        image = image.replace(".tif", "")
+        return image
 
     image_indices = [get_index(f) for f in image_files]
     label_indices = [get_index(f) for f in label_files]

@@ -3,6 +3,7 @@ import rasterio
 import geopandas as gpd
 from shrub_prepro.images import (
     patch_window,
+    shrub_window,
     shrub_labels_in_window,
     label_patch_with_window,
     background_label,
@@ -72,3 +73,14 @@ def test_background_samples(sample_polygons, sample_raster):
 
         assert len(negatives) == len(gdf) * 2
         assert len(negatives) == len(negatives_in_df)
+
+
+def test_shrub_window(sample_polygons, sample_raster):
+    """Test background_samples returns a list of windows with expected properties."""
+    gdf = gpd.read_file(sample_polygons)
+    with rasterio.open(sample_raster) as img:
+        s = gdf.iloc[0]
+        w = shrub_window(s, img)
+        assert isinstance(w, rasterio.windows.Window)
+        assert w.height
+        print(w.height)

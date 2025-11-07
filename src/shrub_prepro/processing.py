@@ -61,7 +61,6 @@ def process_data(
             shrub_px = shrub_window(shrub, image)
             print(shrub_px.height, shrub_px.width)
             if is_shrub_huge(shrub_px, window_size):
-                print("IT'S HUGE!!")
                 windows = shrub_overlaps(shrub, image, window_size)
             else:
                 windows = [patch_window(shrub.geometry, image, patch_size=window_size)]

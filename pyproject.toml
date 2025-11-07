@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shrub-prepro"
-version = "0.1.0"
+version = "0.2.0"
 description = "Process shrub data from RGB imagery"
 requires-python = ">=3.9"
 dependencies = [
